@@ -102,13 +102,11 @@ module.exports = function(robot) {
 
 		};
 
-		var args = {
-			record_name: m[1],
-			record_type: m[2],
-			new_weight: resp.match[2],
-			new_data: resp.match[3],
-			command: resp.match[0]
-		};
+    args.record_name = m[1];
+    args.record_type = m[2];
+    args.new_weight= resp.match[2];
+    args.new_data= resp.match[3];
+    args.command = resp.match[0];
 
 		new route53.call(resp, {action: 'update_record'}, args).do_action();
 	});
