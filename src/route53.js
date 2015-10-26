@@ -35,9 +35,9 @@ module.exports = function(robot) {
 		new route53.call(resp, {action: 'ls_zone_records'}, {zone_name: resp.match[1]}).do_action();
 	});
 
-	robot.respond(new RegExp('route53\\s+(add|create|append)' +
-			'(?:\\s+(\\d+))?' + // policy options, currently just weighted
-			'(?:\\s+(weighted|simple))?' +
+	robot.respond(new RegExp('route53\\s+(add|create|append|remove|delete)' +
+			'(?:\\s+(\\d+)\\s+weighted)?' + 
+			'(?:\\s+in\\s+(?:(AF|AN|AS|EU|OC|NA|SA)|(?:(\\S{2}):(\\S+)?)))?' +
 			'\\s+record(?:\\s+set\\s+(\\S+))?' +
 			'\\s+(\\S+)\\s+' + formatting.patterns.valid_types +
 			'(?:' +
@@ -46,19 +46,20 @@ module.exports = function(robot) {
 				'(?:\\s+(\\d+)\\s+(\\S.+))' +
 			')\\s*$', 'i'),
 		function(resp) {
-
 			var args = {
 				action: resp.match[1],
 				record: {
 					weight: resp.match[2],
-					policy: resp.match[3] && resp.match[3].toLowerCase(),
-					set: resp.match[4],
-					name: resp.match[5],
-					type: resp.match[6].toUpperCase(),
-					ttl: resp.match[10],
-					data: resp.match[11],
-					alias_target: resp.match[7],
-					check_target_health: Boolean(resp.match[8] && ! resp.match[9]),
+					continent: resp.match[3],
+					country: resp.match[4],
+					subdivision: resp.match[5],
+					set: resp.match[6],
+					name: resp.match[7],
+					type: resp.match[8].toUpperCase(),
+					ttl: resp.match[12],
+					data: resp.match[13],
+					alias_target: resp.match[9],
+					check_target_health: Boolean(resp.match[10] && ! resp.match[11]),
 				}
 			};
 			new route53.call(resp, {action: 'add_remove_record'}, args).do_action();
@@ -113,6 +114,37 @@ module.exports = function(robot) {
 
 	robot.respond(/route53\s+delete\s+zone\s+(\S+)\s*$/i, function(resp) {
 		new route53.call(resp, {action: 'delete_zone'}, {zone_name: resp.match[1]}).do_action();
+	});
+
+  robot.respond(/route53\s+example\s*$/i, function(resp) {
+    resp.reply('Add plain resource record:');
+    resp.reply('> route53 add record www.zone.tld A 60 192.168.23.11');
+    resp.reply('Add weighted resource record with set identifier 10wset:');
+    resp.reply('> route53 add 10 weighted record set 10wset w10.zone.tld A 60 192.122.12.13');
+    resp.reply('Add aliased weighted resource record set');
+    resp.reply('> route53 add 15 weighted record set web www.zone.tld A alias for w15.zone.tld check target health\n');
+    resp.reply('Changes will observabe instantly by printing zone records: ');
+    resp.reply('> route53 ls zone.tld records');
+    resp.reply('Show details of records');
+    resp.reply('> route53 show record www.zone.tld');
+    resp.reply('Or if there are many records defined, a more selective one:');
+    resp.reply('> route53 show records aliased to w15.zone.tld');
+    resp.reply('Or more selective: ');
+    resp.reply('> route53 show records aliased to w15.zone.tld A\n');
+    resp.reply('It show records by changed state, but in fact changes are not fully operational until state become INSYNC');
+    resp.reply('> route53 show change C12UGSTBO1H3B2\n');
+    resp.reply('To update weight of some record:');
+    resp.reply('> route53 update record www.zone.tld A set weight to 5');
+    resp.reply('Record types are optional if it result to single record.');
+    resp.reply('Weighted alias resource record sets are not different:');
+    resp.reply('> route53 update record w10.zone.tld A set weight to 1');
+    resp.reply('Also, It can be selected by It\'s target record:');
+    resp.reply('> route53 update record aliased to w15.zone.tld set weight to 0');
+    resp.reply('Notice: Update will not work for multiple records');
+		resp.reply('Add geo records in North America:');
+		resp.reply('> route53 add in NA record set na-w3 w3.na.zone.tld A 80 192.122.12.13');
+		resp.reply('Or for Canada:');
+		resp.reply('> route53 add in CA: record set ca-w3 w3.ca.zone.tld A 80 192.122.12.13');
 	});
 
 	robot.listeners.push(new hubot.Listener(robot,
