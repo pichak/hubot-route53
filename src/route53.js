@@ -103,11 +103,11 @@ module.exports = function(robot) {
 
 		};
 
-    args.record_name = m[1];
-    args.record_type = m[2];
-    args.new_weight= resp.match[2];
-    args.new_data= resp.match[3];
-    args.command = resp.match[0];
+		args.record_name = m[1];
+		args.record_type = m[2];
+		args.new_weight= resp.match[2];
+		args.new_data= resp.match[3];
+		args.command = resp.match[0];
 
 		new route53.call(resp, {action: 'update_record'}, args).do_action();
 	});
@@ -116,45 +116,46 @@ module.exports = function(robot) {
 		new route53.call(resp, {action: 'delete_zone'}, {zone_name: resp.match[1]}).do_action();
 	});
 
-  robot.respond(/route53\s+example\s*$/i, function(resp) {
-    resp.reply('Add plain resource record:');
-    resp.reply('> route53 add record www.zone.tld A 60 192.168.23.11');
-    resp.reply('Add weighted resource record with set identifier 10wset:');
-    resp.reply('> route53 add 10 weighted record set 10wset w10.zone.tld A 60 192.122.12.13');
-    resp.reply('Add aliased weighted resource record set');
-    resp.reply('> route53 add 15 weighted record set web www.zone.tld A alias for w15.zone.tld check target health\n');
-    resp.reply('Changes will observabe instantly by printing zone records: ');
-    resp.reply('> route53 ls zone.tld records');
-    resp.reply('Show details of records');
-    resp.reply('> route53 show record www.zone.tld');
-    resp.reply('Or if there are many records defined, a more selective one:');
-    resp.reply('> route53 show records aliased to w15.zone.tld');
-    resp.reply('Or more selective: ');
-    resp.reply('> route53 show records aliased to w15.zone.tld A\n');
-    resp.reply('It show records by changed state, but in fact changes are not fully operational until state become INSYNC');
-    resp.reply('> route53 show change C12UGSTBO1H3B2\n');
-    resp.reply('To update weight of some record:');
-    resp.reply('> route53 update record www.zone.tld A set weight to 5');
-    resp.reply('Record types are optional if it result to single record.');
-    resp.reply('Weighted alias resource record sets are not different:');
-    resp.reply('> route53 update record w10.zone.tld A set weight to 1');
-    resp.reply('Also, It can be selected by It\'s target record:');
-    resp.reply('> route53 update record aliased to w15.zone.tld set weight to 0');
-    resp.reply('Notice: Update will not work for multiple records');
-		resp.reply('Add geo records in North America:');
-		resp.reply('> route53 add in NA record set na-w3 w3.na.zone.tld A 80 192.122.12.13');
-		resp.reply('Or for Canada:');
-		resp.reply('> route53 add in CA: record set ca-w3 w3.ca.zone.tld A 80 192.122.12.13');
+	robot.respond(/route53\s+examples?\s*$/i, function(resp) {
+		resp.reply('Add plain resource record:' + '\n' +
+		           '> route53 add record www.zone.tld A 60 192.168.23.11' + '\n' +
+		           'Add weighted resource record with set identifier 10wset:' + '\n' +
+		           '> route53 add 10 weighted record set 10wset w10.zone.tld A 60 192.122.12.13' + '\n' +
+		           'Add aliased weighted resource record set' + '\n' +
+		           '> route53 add 15 weighted record set web www.zone.tld A alias for w15.zone.tld check target health\n' + '\n' +
+		           'Changes will observabe instantly by printing zone records: ' + '\n' +
+		           '> route53 ls zone.tld records' + '\n' +
+		           'Show details of records' + '\n' +
+		           '> route53 show record www.zone.tld' + '\n' +
+		           'Or if there are many records defined, a more selective one:' + '\n' +
+		           '> route53 show records aliased to w15.zone.tld' + '\n' +
+		           'Or more selective: ' + '\n' +
+		           '> route53 show records aliased to w15.zone.tld A\n' + '\n' +
+		           'It show records by changed state, but in fact changes are not fully operational until state become INSYNC' + '\n' +
+		           '> route53 show change C12UGSTBO1H3B2\n' + '\n' +
+		           'To update weight of some record:' + '\n' +
+		           '> route53 update record www.zone.tld A set weight to 5' + '\n' +
+		           'Record types are optional if it result to single record.' + '\n' +
+		           'Weighted alias resource record sets are not different:' + '\n' +
+		           '> route53 update record w10.zone.tld A set weight to 1' + '\n' +
+		           'Also, It can be selected by It\'s target record:' + '\n' +
+		           '> route53 update record aliased to w15.zone.tld set weight to 0' + '\n' +
+		           'Notice: Update will not work for multiple records' + '\n' +
+		           'Add geo records in North America:' + '\n' +
+		           '> route53 add in NA record set na-w3 w3.na.zone.tld A 80 192.122.12.13' + '\n' +
+		           'Or for Canada:' + '\n' +
+		           '> route53 add in CA: record set ca-w3 w3.ca.zone.tld A 80 192.122.12.13');
 	});
 
-	robot.listeners.push(new hubot.Listener(robot,
-		function(msg) {
-			return msg instanceof hubot_messages.CatchAllMessage
-				&& new RegExp(robot.name + '\\s+route53 ?.*', 'i').test(msg.message.text);
-		},
-		function(resp) {
-			resp.reply('Bad route53 command invocation');
-		})
+	robot.listeners.push(
+		new hubot.Listener(robot,
+			                 function(msg) {
+			                 	return msg instanceof hubot_messages.CatchAllMessage
+			                 		&& new RegExp(robot.name + '\\s+route53 ?.*', 'i').test(msg.message.text);
+			                 },
+			                 function(resp) {
+			                 	resp.reply('Bad route53 command invocation');
+			                 })
 	);
 
 	robot.router.use(bp.json());
